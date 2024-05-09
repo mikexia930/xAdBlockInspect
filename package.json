@@ -1,0 +1,31 @@
+{
+  "name": "x-ad-block-inspect",
+  "description": "Detect if any elements on the page are blocked by adblock and prompt the user",
+  "keywords": [
+    "adblock",
+    "inspect adblock",
+    "prompt adblock"
+  ],
+  "version": "1.0.0",
+  "private": false,
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "lib/*"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build:lib": "tsc && vite build --mode library",
+    "build:demo": "tsc && vite build --mode demo",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^3.9.1"
+  },
+  "main": "lib/x-ad-block-inspect.cjs.js",
+  "module": "lib/x-ad-block-inspect.es.js",
+  "unpkg": "lib/x-ad-block-inspect.umd.js",
+  "types": "lib/index.d.ts"
+}
