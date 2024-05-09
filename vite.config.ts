@@ -21,6 +21,7 @@ const libraryConfig = defineConfig({
 
 // demo 应用配置
 const demoConfig = defineConfig({
+  base: './', // 设置为相对路径
   build: {
     outDir: 'docs'
   }
