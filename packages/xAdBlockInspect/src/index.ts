@@ -1,4 +1,5 @@
 export interface IFPopupConfig {
+  isUse: boolean;
   text: string;
   style?: {
     [key:string]: string | number;
@@ -37,6 +38,7 @@ export function xAdBlockInspect(
   elements: Partial<IFInspectElements>,
   config: IFInspectConfig = {
     popup: {
+      isUse: true,
       text: '检测到存在广告屏蔽类插件，为了不影响您的正常访问，建议将本站加入白名单，并刷新页面。'
     },
     button: {
@@ -147,24 +149,27 @@ export function xAdBlockInspect(
     return isValid;
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    let testResult = true;
-    if (testResult && elements.hasOwnProperty('images') && elements.images && elements.images.length > 0) {
-      testResult = await testImages(elements.images);
-    }
-    if (testResult && elements.hasOwnProperty('dom') && elements.dom) {
-      if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Tags)) {
-        testResult = await testDoms(EnumInspectDomType.Tags, elements.dom[EnumInspectDomType.Tags]);
+  return new Promise((resolve) => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      let testResult = true;
+      if (testResult && elements.hasOwnProperty('images') && elements.images && elements.images.length > 0) {
+        testResult = await testImages(elements.images);
       }
-      if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Classnames)) {
-        testResult = await testDoms(EnumInspectDomType.Classnames, elements.dom[EnumInspectDomType.Classnames]);
+      if (testResult && elements.hasOwnProperty('dom') && elements.dom) {
+        if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Tags)) {
+          testResult = await testDoms(EnumInspectDomType.Tags, elements.dom[EnumInspectDomType.Tags]);
+        }
+        if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Classnames)) {
+          testResult = await testDoms(EnumInspectDomType.Classnames, elements.dom[EnumInspectDomType.Classnames]);
+        }
+        if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Ids)) {
+          testResult = await testDoms(EnumInspectDomType.Ids, elements.dom[EnumInspectDomType.Ids]);
+        }
       }
-      if (testResult && elements['dom'].hasOwnProperty(EnumInspectDomType.Ids)) {
-        testResult = await testDoms(EnumInspectDomType.Ids, elements.dom[EnumInspectDomType.Ids]);
+      if (!testResult && config?.popup?.isUse) {
+        document.body.appendChild(createNoticeModal());
       }
-    }
-    if (!testResult) {
-      document.body.appendChild(createNoticeModal());
-    }
-  });
+      resolve(testResult);
+    });
+  })
 }

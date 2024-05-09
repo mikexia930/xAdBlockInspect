@@ -1,4 +1,5 @@
 export interface IFPopupConfig {
+    isUse: boolean;
     text: string;
     style?: {
         [key: string]: string | number;
@@ -28,4 +29,4 @@ export interface IFInspectConfig {
     popup: IFPopupConfig;
     button: IFButtonConfig;
 }
-export declare function xAdBlockInspect(elements: Partial<IFInspectElements>, config?: IFInspectConfig): void;
+export declare function xAdBlockInspect(elements: Partial<IFInspectElements>, config?: IFInspectConfig): Promise<unknown>;
