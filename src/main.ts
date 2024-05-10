@@ -1,8 +1,18 @@
-import { xAdBlockInspect } from '../packages/xAdBlockInspect/src/index';
+import { adBlockInspect } from '../packages/xAdBlockInspect/src/index';
 
-xAdBlockInspect({
-  images: ['https://static.tapdb.net/home_page/res/img/2018/coffee.png']
-}).then((passed: boolean) => {
+adBlockInspect(
+  {
+    images: ['https://static.tapdb.net/home_page/res/img/2018/coffee.png']
+  },
+  {
+    popup: {
+      isUse: true,
+      styles: {
+        backgroundColor: 'green'
+      }
+    }
+  }
+).then((passed: boolean) => {
   const domDiv = document.createElement('div');
   domDiv.style.paddingTop = '300px'
   domDiv.style.textAlign = 'center'
