@@ -1,15 +1,19 @@
 export interface IFPopupConfig {
-  isUse: boolean;
-  text: string;
-  style?: {
+  isUse?: boolean;
+  repeat?: {
+    isUse: boolean;
+    time: number;
+  }; // 是否重复展示，用户关闭后会继续展示
+  text?: string;
+  styles?: {
     [key:string]: string | number;
   }
 }
 
 export interface IFButtonConfig {
-  isUse: boolean;
-  text: string;
-  style?: {
+  isUse?: boolean;
+  text?: string;
+  styles?: {
     [key:string]: string | number;
   }
 }
@@ -29,35 +33,90 @@ export interface IFInspectElements {
   },
 }
 
-export interface IFInspectConfig {
-  popup: IFPopupConfig;
-  button: IFButtonConfig;
+export interface EnumInspectConfig {
+  popup?: IFPopupConfig;
+  button?: IFButtonConfig;
 }
 
-export function xAdBlockInspect(
+export function adBlockInspect(
   elements: Partial<IFInspectElements>,
-  config: IFInspectConfig = {
+  config: EnumInspectConfig
+) {
+  function mergeObjects(target: any, source: any) {
+    for (const key in source) {
+      if (source.hasOwnProperty(key)) {
+        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+          if (!target[key]) {
+            target[key] = {};
+          }
+          mergeObjects(target[key], source[key]);
+        } else {
+          target[key] = source[key] || '';
+        }
+      }
+    }
+    return target;
+  }
+  // 设置 config
+  let useConfig: EnumInspectConfig = {
     popup: {
       isUse: true,
-      text: '检测到存在广告屏蔽类插件，为了不影响您的正常访问，建议将本站加入白名单，并刷新页面。'
+      repeat: {
+        isUse: true,
+        time: 5000
+      },
+      text: '检测到存在广告屏蔽类插件，为了不影响您的正常访问，建议将本站加入白名单，并刷新页面。',
+      styles: {
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        zIndex: '10000',
+        backgroundColor: 'rgba(255,72,72,0.95)',
+        padding: '20px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        textAlign: 'center',
+        width: '100%',
+        fontSize: '16px',
+        color: '#fff'
+      }
     },
     button: {
       isUse: false,
-      text: '知道了'
+      text: '知道了',
+      styles: {
+        marginLeft: '12px'
+      },
     }
-  },
-) {
+  }
+  if (config) {
+    useConfig = mergeObjects(useConfig, config);
+  }
 
-  function createModalCloseBtn(modal: HTMLDivElement) {
+  let repeatTimeoutIns: any = null;
+  function closePopup(popup: HTMLDivElement) {
+    popup.style.display = 'none';
+    if (useConfig?.popup?.repeat?.isUse) {
+      if (repeatTimeoutIns) {
+        clearTimeout(repeatTimeoutIns);
+        repeatTimeoutIns = null;
+      }
+      repeatTimeoutIns = setTimeout(() => {
+        popup.style.display = 'block';
+      }, useConfig?.popup?.repeat?.time || 5000)
+    }
+  }
+
+  function createPopupCloseBtn(popup: HTMLDivElement) {
     const closeButton: any = document.createElement('button');
-    closeButton.textContent = config?.button?.text || 'Confirm';
-    if (config?.button?.style && typeof config?.button?.style === 'object') {
-      Object.keys(config.button.style).forEach(key => {
-        closeButton.style[String(key)] = config.button.style?.[String(key)] || '';
+    closeButton.classList.add('ad-block-inspect-popup-close-btn');
+    closeButton.textContent = useConfig?.button?.text || 'Confirm';
+    if (useConfig?.button?.styles && typeof useConfig?.button?.styles === 'object') {
+      Object.keys(useConfig.button.styles).forEach(key => {
+        closeButton.style[String(key)] = useConfig?.button?.styles?.[String(key)] || '';
       })
     }
-    closeButton.onclick = function() {
-      modal.style.display = 'none';
+    closeButton.onclick = () => {
+      closePopup(popup)
     };
     return closeButton;
   }
@@ -65,28 +124,21 @@ export function xAdBlockInspect(
   function createNoticeModal() {
     const popup: any = document.createElement('div');
     // 设置弹出窗的样式
-    popup.style.position = 'fixed';
-    popup.style.left = '0';
-    popup.style.top = '0';
-    popup.style.zIndex = '10000';
-    popup.style.backgroundColor = 'rgba(255,72,72,0.9)';
-    popup.style.padding = '20px';
-    popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-    popup.style.textAlign = 'center';
-    popup.style.width = '100%';
-    popup.style.fontSize = '16px';
-    popup.style.color = '#fff';
-
-    if (config?.popup?.style && typeof config?.popup?.style === 'object') {
-      Object.keys(config.popup.style).forEach(key => {
-        popup.style[String(key)] = config.popup.style?.[String(key)] || '';
+    if (useConfig?.popup?.styles && typeof useConfig?.popup?.styles === 'object') {
+      Object.keys(useConfig.popup.styles).forEach(key => {
+        popup.style[String(key)] = useConfig?.popup?.styles?.[String(key)] || '';
       })
     }
+    popup.classList.add('ad-block-inspect-popup');
     // 添加提示信息
-    popup.innerHTML = config?.popup?.text || 'No prompt text set';
+    popup.innerHTML = useConfig?.popup?.text || 'No prompt text set';
     // 添加关闭按钮
-    if (config.button.isUse) {
-      popup.appendChild(createModalCloseBtn(popup));
+    if (useConfig?.button?.isUse) {
+      popup.appendChild(createPopupCloseBtn(popup));
+    } else {
+      popup.onclick = () => {
+        closePopup(popup);
+      };
     }
     return popup;
   }
@@ -166,7 +218,7 @@ export function xAdBlockInspect(
           testResult = await testDoms(EnumInspectDomType.Ids, elements.dom[EnumInspectDomType.Ids]);
         }
       }
-      if (!testResult && config?.popup?.isUse) {
+      if (!testResult && useConfig?.popup?.isUse) {
         document.body.appendChild(createNoticeModal());
       }
       resolve(testResult);

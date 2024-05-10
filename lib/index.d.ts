@@ -1,14 +1,18 @@
 export interface IFPopupConfig {
-    isUse: boolean;
-    text: string;
-    style?: {
+    isUse?: boolean;
+    repeat?: {
+        isUse: boolean;
+        time: number;
+    };
+    text?: string;
+    styles?: {
         [key: string]: string | number;
     };
 }
 export interface IFButtonConfig {
-    isUse: boolean;
-    text: string;
-    style?: {
+    isUse?: boolean;
+    text?: string;
+    styles?: {
         [key: string]: string | number;
     };
 }
@@ -25,8 +29,8 @@ export interface IFInspectElements {
         [EnumInspectDomType.Ids]: string[];
     };
 }
-export interface IFInspectConfig {
-    popup: IFPopupConfig;
-    button: IFButtonConfig;
+export interface EnumInspectConfig {
+    popup?: IFPopupConfig;
+    button?: IFButtonConfig;
 }
-export declare function xAdBlockInspect(elements: Partial<IFInspectElements>, config?: IFInspectConfig): Promise<unknown>;
+export declare function adBlockInspect(elements: Partial<IFInspectElements>, config: EnumInspectConfig): Promise<unknown>;
